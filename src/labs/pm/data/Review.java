@@ -2,26 +2,26 @@ package labs.pm.data;
 
 public class Review {
     private final Rating rating;
-    private final String comment;
+    private final String comments;
 
-    public Review(final Rating rating, final String comment) {
+    public Review(final Rating rating, final String comments) {
         this.rating = rating;
-        this.comment = comment;
+        this.comments = comments;
     }
 
     public Rating getRating() {
         return rating;
     }
 
-    public String getComment() {
-        return comment;
+    public String getComments() {
+        return comments;
     }
 
     @Override
     public String toString() {
         return "Review{" +
                 "rating=" + rating +
-                ", comment='" + comment + '\'' +
+                ", comments='" + comments + '\'' +
                 '}';
     }
 }
