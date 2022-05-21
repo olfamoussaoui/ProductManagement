@@ -7,10 +7,12 @@ import labs.pm.data.Rating;
 import java.math.BigDecimal;
 import java.util.Locale;
 
+import static labs.pm.data.Rating.FOUR_STAR;
+
 public class Shop {
     public static void main(String[] args) {
 
-        ProductManager pm = new ProductManager(Locale.UK);
+        ProductManager pm = new ProductManager(Locale.US);
 
         Product p1 = pm.createProduct(
                 101,
@@ -20,8 +22,7 @@ public class Shop {
         );
 
         pm.printProductReport();
-
-        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Nice hot cup of tea");
+        p1 = pm.reviewProduct(p1, FOUR_STAR, "Nice hot cup of tea");
         pm.printProductReport();
 
 //        Product p2 = pm.createProduct(
