@@ -4,14 +4,13 @@ import labs.pm.data.ProductManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Locale;
 
 import static labs.pm.data.Rating.*;
 
 public class Shop {
     public static void main(String[] args) {
 
-        ProductManager pm = new ProductManager(Locale.US);
+        ProductManager pm = new ProductManager(ProductManager.LAN_TAG_CN);
 
         int p1Id = 101;
         pm.createProduct(p1Id, "Tea", BigDecimal.valueOf(1.99), NOT_RATED);
