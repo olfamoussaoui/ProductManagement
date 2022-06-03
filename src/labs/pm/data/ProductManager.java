@@ -7,6 +7,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static java.lang.System.out;
 
 public class ProductManager {
     public static final String LAN_TAG_US = Locale.US.toLanguageTag();
@@ -19,7 +23,7 @@ public class ProductManager {
     public static final String LAN_TAG_CN = Locale.CHINA.toLanguageTag();
     ;
     public static final String LAN_TAG_NL = "nl-NL";
-    private Map<Product, List<Review>> products = new HashMap<>();
+    private final Map<Product, List<Review>> products = new HashMap<>();
     private ResourceFormatter formatter;
     private static Map<String, ResourceFormatter> formatters = Map.of(
             LAN_TAG_UK, new ResourceFormatter(Locale.UK),
@@ -66,15 +70,13 @@ public class ProductManager {
         List<Review> reviews = products.get(product);
         products.remove(product, reviews);
         reviews.add(new Review(rating, comments));
-
-        int sum = 0;
-        for (Review review : reviews) {
-            sum += review.getRating().ordinal();
-        }
-        product = product
-                .applyRating(
-                        Rateable.convert(Math.round((float) sum / reviews.size()))
-                );
+        product = product.applyRating(
+                Rateable.convert(
+                        (int) Math.round(
+                                reviews.stream()
+                                        .mapToInt(r -> r.getRating().ordinal())
+                                        .average()
+                                        .orElse(0))));
         products.put(product, reviews);
         return product;
     }
@@ -86,35 +88,49 @@ public class ProductManager {
 
     public void printProductReport(Product product) {
         List<Review> reviews = products.get(product);
+        Collections.sort(reviews);
         StringBuilder txt = new StringBuilder();
         txt.append(formatter.formatProduct(product));
         txt.append('\n');
-        Collections.sort(reviews);
-        for (Review review : reviews) {
-            txt.append(formatter.formatReview(review));
-            txt.append('\n');
-        }
         if (reviews.isEmpty()) {
             txt.append(formatter.getText("no.reviews"));
-            txt.append('\n');
+        } else {
+            txt.append(reviews.stream()
+                    .map(review -> formatter.formatReview(review) + '\n')
+                    .collect(Collectors.joining()));
         }
-        System.out.println(txt);
+        out.println(txt);
+    }
+    public void printProducts(Predicate<Product> filter, Comparator<Product> sorter) {
+        StringBuilder txt = new StringBuilder();
+        products.keySet().stream()
+                .sorted(sorter)
+                .filter(filter)
+                .forEach(product -> txt.append(formatter.formatProduct(product)).append('\n'));
+        out.println(txt);
     }
 
+    public Map<String, String> getDiscounts() {
+        return products.keySet()
+                .stream()
+                .collect(
+                        Collectors.groupingBy(
+                                product -> product.getRating().getStars(),
+                                Collectors.collectingAndThen(
+                                        Collectors.summingDouble(product -> product.getDiscount().doubleValue()),
+                                        discount -> formatter.moneyFormat.format(discount))));
+    }
     public void printProductReport(int id) {
         Product product = findProduct(id);
         printProductReport(product);
     }
 
     public Product findProduct(int id) {
-        Product result = null;
-        for (Product product : products.keySet()) {
-            if (product.getId() == id) {
-                result = product;
-                break;
-            }
-        }
-        return result;
+        return products.keySet()
+                .stream()
+                .filter(p -> p.getId() == id)
+                .findFirst()
+                .orElseGet(() -> null);
     }
 
     private static class ResourceFormatter {
